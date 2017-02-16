@@ -1,7 +1,4 @@
 require "active_record_importer/version"
-
-module ActiveRecordImporter
-  def self.hi
-    puts 'IMPORTER!!!!'
-  end
-end
+require "active_record"
+::IMPORTABLES = []
+ActiveRecord::Base.extend(ActiveRecordImporter::Importable::ClassMethods)
