@@ -24,7 +24,7 @@ module ActiveRecordImporter
     attribute :find_options, Array
     attribute :exclude_from_find_options, Array
     attribute :import_method, Symbol, default: :create
-    attribute :assoc_column, Symbol
+    attribute :scope, Symbol
     attribute :importable_columns, Array
     attribute :default_attributes, Hash
     attribute :csv_opts, CsvOptions, default: CsvOptions.new
