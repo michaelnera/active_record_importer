@@ -19,17 +19,14 @@ module ActiveRecordImporter
       #   end
       ##
       def acts_as_importable(options = {})
-        class << self
-          attr_reader :importer_options
-        end
-
-        @importer_options = OptionsBuilder.build(options.merge(allowed_columns_hash(options)))
-
-        class_eval do
-          ::IMPORTABLES << self.name unless ::IMPORTABLES.include?(self.name)
-        end
+        @@importer_options = OptionsBuilder.build(options.merge(allowed_columns_hash(options)))
+        ::IMPORTABLES << self.name unless ::IMPORTABLES.include?(self.name)
 
         include ActiveRecordImporter::Importable::InstanceMethods
+      end
+
+      def importer_options
+        @@importer_options
       end
 
       private
