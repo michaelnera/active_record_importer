@@ -1,7 +1,8 @@
 require 'active_record_importer/version'
-::IMPORTABLES = []
 
 module ActiveRecordImporter
+  ::IMPORTABLES = []
+
   autoload :Importable,     'active_record_importer/importable'
   autoload :OptionsBuilder, 'active_record_importer/options_builder'
 
