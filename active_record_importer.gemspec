@@ -27,4 +27,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activerecord', '~> 4.0'
   spec.add_dependency 'virtus', '~> 1.0'
+  spec.add_dependency 'smarter_csv', '~> 1.0'
+  spec.add_dependency 'paperclip', '~> 4.0'
 end
