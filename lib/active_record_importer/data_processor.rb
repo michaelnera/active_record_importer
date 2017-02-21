@@ -3,6 +3,9 @@ module ActiveRecordImporter
     attr_reader :importable, :import, :instance, :attributes,
                 :row_errors, :row_attrs, :find_attributes
 
+    delegate :import_options,
+             to: :importable
+
     def initialize(import, row_attrs)
       @import = import
       @importable = import.resource.safe_constantize
@@ -22,8 +25,8 @@ module ActiveRecordImporter
         begin
           @instance =
               InstanceBuilder.new(
-                  import, find_attributes,
-                  attributes_without_state_machine_attrs
+                import, find_attributes,
+                attributes_without_state_machine_attrs
               ).build
 
           methods_after_upsert
@@ -59,6 +62,10 @@ module ActiveRecordImporter
       run_after_save_callbacks
     end
 
+    delegate :after_save,
+             :state_machine_attr,
+             to: :import_options
+
     def state_transitions
       return if state_machine_attr.blank?
 
@@ -74,13 +81,13 @@ module ActiveRecordImporter
     end
 
     def skip_callbacks?
-      after_save_callbacks.blank? || instance.blank? || instance.new_record?
+      after_save.blank? || instance.blank? || instance.new_record?
     end
 
     def run_after_save_callbacks
       return if skip_callbacks?
 
-      ImportCallbacker.new(instance, after_save_callbacks).call
+      ImportCallbacker.new(instance, after_save).call
     end
 
     def append_errors(error, rollback = false)
