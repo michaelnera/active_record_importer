@@ -17,7 +17,7 @@ module ActiveRecordImporter
     private
 
     def fire_event!(event)
-      fail 'Transition is invalid.' if event.blank?
+      fail Errors::InvalidTransition if event.blank?
       object.send(event)
     end
 

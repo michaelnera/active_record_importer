@@ -9,7 +9,7 @@ module ActiveRecordImporter
     end
 
     def build
-      fail 'Find by option for your csv is missing or incorrect.' if find_attributes.blank?
+      fail Errors::MissingFindByOption if find_attributes.blank?
       instance = klass.find_or_initialize_by(find_attributes)
       process_data(instance)
     end
@@ -22,7 +22,7 @@ module ActiveRecordImporter
 
     def process_data(instance)
       return insert_or_update(instance) if upsert_duplicate?(instance)
-      fail 'Duplicate record'
+      fail Errors::DuplicateRecord
     end
 
     def insert_or_update(instance)
