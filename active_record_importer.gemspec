@@ -24,9 +24,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 2.99'
   spec.add_development_dependency 'rails', '~> 4.0'
 
-
-  spec.add_dependency 'activerecord', '~> 4.0'
-  spec.add_dependency 'virtus', '~> 1.0'
-  spec.add_dependency 'smarter_csv', '~> 1.0'
-  spec.add_dependency 'paperclip', '~> 4.0'
+  spec.add_runtime_dependency 'activerecord'
+  spec.add_runtime_dependency 'virtus', '>= 1.0', '~> 1.0'
+  spec.add_runtime_dependency 'smarter_csv', '>= 1.0', '~> 1.0'
+  spec.add_runtime_dependency 'paperclip', '>= 4.0', '~> 4.0'
 end
