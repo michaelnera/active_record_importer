@@ -123,16 +123,29 @@ acts_as_importable default_attributes: { first_name: 'Juan',
 
 You may also add some options from the SmarterCSV gem:
 
-    Option                        |  Default
-    convert_values_to_metric      |  nil
-    value_converters              |  nil
-    remove_empty_values           |  false
-    comment_regexp                |  Regexp.new(/^#=>/)
-    force_utf8                    |  true
-    chunk_size                    |  500
-    col_sep                       |  ","
+    | Option                         |  Default
+    --------------------------------------------------------------
+    | :convert_values_to_metric      |  nil
+    | :value_converters              |  nil
+    | :remove_empty_values           |  false
+    | :comment_regexp                |  Regexp.new(/^#=>/)
+    | :force_utf8                    |  true
+    | :chunk_size                    |  500
+    | :col_sep                       |  ","
 
-I'll add more options SOON!
+#### I'll add more options SOON!
+
+#### Imports Controller:
+```ruby
+class ImportsController < ApplicationController
+
+  def create
+    @import = Import.create!(import_params)
+    @import.import!
+  end
+
+end
+```
 
 
 ## Development
