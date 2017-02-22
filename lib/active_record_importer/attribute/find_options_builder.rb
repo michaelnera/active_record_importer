@@ -22,9 +22,7 @@ module ActiveRecordImporter
 
       delegate :import_options, to: :klass
 
-      delegate :required_attributes,
-               :assoc_column,
-               to: :import_options
+      delegate :required_attributes, to: :import_options
 
       def get_find_opts
         @options = strip_and_symbolize
