@@ -1,6 +1,6 @@
 module ActiveRecordImporter
   module Attribute
-    class Builder
+    class AttributesBuilder
       include Helpers
 
       attr_reader :importable, :row_attrs, :processed_attrs
@@ -39,10 +39,6 @@ module ActiveRecordImporter
 
       def fetch_time_attributes
         @processed_attrs.merge!(time_attributes(attrs))
-      end
-
-      def fetch_assoc_attributes
-        @processed_attrs.merge!(AssociationBuilder.new(row_attrs, find_assoc_opts).build)
       end
 
       def fetch_value(value)

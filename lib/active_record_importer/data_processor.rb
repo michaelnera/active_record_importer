@@ -38,7 +38,7 @@ module ActiveRecordImporter
     end
 
     def fetch_instance_attributes
-      @attributes = Attribute::Builder.new(
+      @attributes = Attribute::AttributesBuilder.new(
                       importable, row_attrs
                     ).build
     rescue => exception
