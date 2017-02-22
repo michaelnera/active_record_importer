@@ -22,7 +22,43 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Simple usage for now:
+
+### Rails 4:
+```ruby
+class User < ActiveRecord::Base
+  acts_as_importable
+end
+```
+
+### Rails 5:
+```ruby
+class User < ApplicationRecord
+  acts_as_importable
+end
+```
+
+You may also add import options:
+```ruby
+acts_as_importable default_attributes: { first_name: 'Juan',
+                                         last_name: 'dela Cruz' },
+                   find_options: %i(email),
+                   before_save: Proc.new { |user| user.password = 'temporarypassword123' }
+```
+
+You may also add some options from the SmarterCSV gem:
+
+    Option                        |  Default
+    convert_values_to_metric      |  nil
+    value_converters              |  nil
+    remove_empty_values           |  false
+    comment_regexp                |  Regexp.new(/^#=>/)
+    force_utf8                    |  true
+    chunk_size                    |  500
+    col_sep                       |  ","
+
+I'll add more options SOON!
+
 
 ## Development
 
@@ -32,7 +68,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/active_record_importer. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/michaelnera/active_record_importer. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](contributor-covenant.org) code of conduct.
 
 
 ## License
