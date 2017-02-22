@@ -9,32 +9,48 @@ module ActiveRecordImporter
     end
 
     def build
-      fail Errors::MissingFindByOption if find_attributes.blank?
-      instance = klass.find_or_initialize_by(find_attributes)
+      instance = initialize_instance
       process_data(instance)
     end
 
     private
 
+    delegate :insert_method, to: :import
+
+    def initialize_instance
+      return klass.new if insert_method.insert?
+
+      fail Errors::MissingFindByOption if find_attributes.blank?
+      klass.find_or_initialize_by(find_attributes)
+    end
+
     def klass
       import.resource.safe_constantize
     end
 
+    delegate :import_options, to: :klass
+    delegate :before_save, to: :import_options
+
     def process_data(instance)
-      return insert_or_update(instance) if upsert_duplicate?(instance)
-      fail Errors::DuplicateRecord
+      fail Errors::DuplicateRecord if error_duplicate?
+
+      before_save_callback(instance)
+      assign_attrs_and_save!(instance)
     end
 
-    def insert_or_update(instance)
+    def before_save_callback(instance)
+      return if before_save.blank?
+      ImportCallbacker.new(instance, before_save).call
+    end
+
+    def assign_attrs_and_save!(instance)
       instance.attributes = attributes
       instance.save!
       instance
     end
 
-    delegate :insert_method, to: :import
-
-    def upsert_duplicate?(instance)
-      instance.new_record? || insert_method.upsert?
+    def error_duplicate?(instance)
+      instance.persisted? && insert_method.error_duplicate?
     end
   end
 end
