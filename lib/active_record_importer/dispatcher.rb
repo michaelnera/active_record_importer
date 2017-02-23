@@ -29,7 +29,7 @@ module ActiveRecordImporter
     end
 
     def klass_csv_opts(klass)
-      klass.import_options.csv_opts.to_hash
+      klass.importer_options.csv_opts.to_hash
     end
 
     def queue_or_execute(collection)
@@ -38,7 +38,7 @@ module ActiveRecordImporter
     end
 
     def process_import(collection)
-      BatchImporter.new(import, collection)
+      BatchImporter.new(import, collection).process!
     end
 
     def queue(collection)

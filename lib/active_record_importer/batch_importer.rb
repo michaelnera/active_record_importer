@@ -8,7 +8,7 @@ module ActiveRecordImporter
       @data = data
     end
 
-    def run
+    def process!
       @imported_count, @failed_count = 0, 0
 
       data.each do |row|
@@ -31,10 +31,10 @@ module ActiveRecordImporter
       import.resource.safe_constantize
     end
 
-    delegate :import_options, to: :importable
+    delegate :importer_options, to: :importable
 
     def csv_options
-      import_options.csv_opts.to_hash
+      importer_options.csv_opts.to_hash
     end
   end
 end

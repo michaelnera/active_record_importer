@@ -28,11 +28,11 @@ module ActiveRecordImporter
       import.resource.safe_constantize
     end
 
-    delegate :import_options, to: :klass
-    delegate :before_save, to: :import_options
+    delegate :importer_options, to: :klass
+    delegate :before_save, to: :importer_options
 
     def process_data(instance)
-      fail Errors::DuplicateRecord if error_duplicate?
+      fail Errors::DuplicateRecord if error_duplicate?(instance)
 
       before_save_callback(instance)
       assign_attrs_and_save!(instance)

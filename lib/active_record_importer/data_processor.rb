@@ -3,7 +3,7 @@ module ActiveRecordImporter
     attr_reader :importable, :import, :instance, :attributes,
                 :row_errors, :row_attrs, :find_attributes
 
-    delegate :import_options,
+    delegate :importer_options,
              to: :importable
 
     def initialize(import, row_attrs)
@@ -38,7 +38,7 @@ module ActiveRecordImporter
     end
 
     def fetch_instance_attributes
-      @attributes = Attribute::AttributesBuilder.new(
+      @attributes = AttributesBuilder.new(
                       importable, row_attrs
                     ).build
     rescue => exception
@@ -46,7 +46,7 @@ module ActiveRecordImporter
     end
 
     def fetch_find_attributes
-      @find_attributes = Attribute::FindOptionsBuilder.new(
+      @find_attributes = FindOptionsBuilder.new(
         resource: import.resource,
         find_options: import.find_options,
         attrs: attributes
@@ -64,7 +64,7 @@ module ActiveRecordImporter
 
     delegate :after_save,
              :state_machine_attr,
-             to: :import_options
+             to: :importer_options
 
     def state_transitions
       return if state_machine_attr.blank?
