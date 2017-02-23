@@ -4,8 +4,9 @@ Supports only Rails 4 and 5
 
 This gem helps you insert/update records easily. For now, it only accepts CSV file.
 This also helps you monitor how many rows are imported, and how many rows failed.
+This gem also allows you to easily import to any model with few configurations.
+
 I'll release an update to enable this on background job.
-This gem allows you to easily import to any model with few configurations.
 
 ## Installation
 
@@ -85,8 +86,8 @@ class Import < ActiveRecord::Base
   end
 
   ##
-  # Override this if you prefer have
-  # a private permissions or you have
+  # Override this if you prefer to have
+  # a private permission or you have
   # private methods for reading files
   ##
   def import_file
