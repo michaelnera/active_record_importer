@@ -22,6 +22,8 @@ Or install it yourself as:
 
 ## Usage
 
+Supports only Rails 4...
+
 Simple usage for now:
 
 ### Create Import table/model
@@ -37,8 +39,7 @@ class ActiveRecordImporterMigration < ActiveRecord::Migration
       t.string      :resource,           null: false
       t.integer     :imported_rows,      default: 0
       t.integer     :failed_rows,        default: 0
-      t.datetime    :updated_at
-      t.datetime    :created_at
+      t.timestamps
     end
   end
 end
@@ -47,6 +48,7 @@ end
 #### Import Model:
 ```ruby
 class Import < ActiveRecord::Base
+  extend Enumerize
   store :properties, accessors: %i(insert_method find_options batch_size)
 
   enumerize :insert_method,
@@ -57,29 +59,28 @@ class Import < ActiveRecord::Base
 
   attr_accessor :execute_on_create
 
+  validates :resource, presence: true
   validate :check_presence_of_find_options
   validates_attachment :file,
                        content_type: {
                            content_type: %w(text/plain text/csv)
                        }
 
-  accepts_nested_attributes_for :import_options, allow_destroy: true
+  after_create :execute, if: :execute_on_create
 
-  def import!
-    ActiveRecordImporter::Dispatcher.new(
-      self.id, execute_on_create
-    ).call
+  # I'll add import options in the next release
+  # accepts_nested_attributes_for :import_options, allow_destroy: true
+
+  def execute
+    resource_class.import!(self, execute_on_create)
+  end
+
+  def resource_class
+    resource.safe_constantize
   end
 
   def batch_size
     super.to_i
-  end
-
-  private
-
-  def check_presence_of_find_options
-    return if insert_method.insert?
-    errors.add(:find_options, "can't be blank") if find_options.blank?
   end
 
   ##
@@ -93,32 +94,32 @@ class Import < ActiveRecord::Base
 
   private
 
+  def check_presence_of_find_options
+    return if insert_method.insert?
+    errors.add(:find_options, "can't be blank") if find_options.blank?
+  end
+
   def local_path?
     File.exist? import_file.file.path
   end
 end
 ```
 
-### Rails 4:
+Add `acts_as_importable` to a model to make it importable
 ```ruby
 class User < ActiveRecord::Base
   acts_as_importable
 end
 ```
 
-### Rails 5:
-```ruby
-class User < ApplicationRecord
-  acts_as_importable
-end
-```
-
 You may also add import options:
 ```ruby
-acts_as_importable default_attributes: { first_name: 'Juan',
-                                         last_name: 'dela Cruz' },
-                   find_options: %i(email),
-                   before_save: Proc.new { |user| user.password = 'temporarypassword123' }
+class User < ActiveRecord::Base
+  acts_as_importable default_attributes: { first_name: 'Juan',
+                                           last_name: 'dela Cruz' },
+                     find_options: %i(email),
+                     before_save: Proc.new { |user| user.password = 'temporarypassword123' }
+end
 ```
 
 You may also add some options from the SmarterCSV gem:
@@ -141,11 +142,16 @@ class ImportsController < ApplicationController
 
   def create
     @import = Import.create!(import_params)
-    @import.import!
+    @import.execute_on_create = true
+    @import.execute
   end
 
 end
 ```
+
+You may include execute_on_create as a checkbox field in your Import form so you don't have to
+include `@import.execute_on_create = true` in your controller.
+
 
 
 ## Development
