@@ -52,7 +52,7 @@ module ActiveRecordImporter
     end
 
     def local_path?
-      File.exist? import_file.file.path
+      File.exist? file.path
     end
   end
 end
