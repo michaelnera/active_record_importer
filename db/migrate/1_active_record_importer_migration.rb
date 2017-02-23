@@ -7,8 +7,7 @@ class ActiveRecordImporterMigration < ActiveRecord::Migration
       t.string      :resource,           null: false
       t.integer     :imported_rows,      default: 0
       t.integer     :failed_rows,        default: 0
-      t.datetime    :updated_at
-      t.datetime    :created_at
+      t.timestamps
     end
   end
 end
