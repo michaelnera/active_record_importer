@@ -1,6 +1,6 @@
 # ActiveRecordImporter
 
-Supports only Rails 4... (I'll release soon an update to support Rails 5)
+Supports only Rails 4 and 5
 
 This gem helps you insert/update records easily. For now, it only accepts CSV file.
 This also helps you monitor how many rows are imported, and how many rows failed.
