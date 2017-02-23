@@ -123,6 +123,21 @@ class User < ActiveRecord::Base
 end
 ```
 
+#### Import Sample HAML Form
+```ruby
+    # resource is your Model name
+    = f.input :resource
+    # batch_size is useful for large csv file
+    = f.input :batch_size
+    # insert_methods: [:upsert, :insert, :error_on_duplicate]
+    = f.input :insert_method, collection: insert_methods, class: 'form-control insert-method'
+    # `find_options` are the list of columns you want to use to update a certain instance or
+    # error when a duplicate is found. This is not required when your insert_method is `:insert`
+    = f.input :find_options
+    = f.input :file, as: :file,
+      input_html: { accept: '.csv' }
+```
+
 You may also add some options from the SmarterCSV gem:
 
     | Option                         |  Default
@@ -147,6 +162,11 @@ class ImportsController < ApplicationController
     @import.execute
   end
 
+  private
+
+  def import_params
+    params.require(:import).permit(:file, :resource, :insert_method, :batch_size)
+  end
 end
 ```
 
