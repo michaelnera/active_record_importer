@@ -1,5 +1,6 @@
 module ActiveRecordImporter
   class Import < ActiveRecord::Base
+    extend Enumerize
     store :properties, accessors: %i(insert_method find_options batch_size)
 
     enumerize :insert_method,
@@ -10,29 +11,28 @@ module ActiveRecordImporter
 
     attr_accessor :execute_on_create
 
+    validates :resource, presence: true
     validate :check_presence_of_find_options
     validates_attachment :file,
                          content_type: {
                              content_type: %w(text/plain text/csv)
                          }
 
-    accepts_nested_attributes_for :import_options, allow_destroy: true
+    after_create :execute, if: :execute_on_create
 
-    def import!
-      ActiveRecordImporter::Dispatcher.new(
-        self.id, execute_on_create
-      ).call
+    # I'll add import options in the next release
+    # accepts_nested_attributes_for :import_options, allow_destroy: true
+
+    def execute
+      resource_class.import!(self, execute_on_create)
+    end
+
+    def resource_class
+      resource.safe_constantize
     end
 
     def batch_size
       super.to_i
-    end
-
-    private
-
-    def check_presence_of_find_options
-      return if insert_method.insert?
-      errors.add(:find_options, "can't be blank") if find_options.blank?
     end
 
     ##
@@ -45,6 +45,11 @@ module ActiveRecordImporter
     end
 
     private
+
+    def check_presence_of_find_options
+      return if insert_method.insert?
+      errors.add(:find_options, "can't be blank") if find_options.blank?
+    end
 
     def local_path?
       File.exist? import_file.file.path
