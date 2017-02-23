@@ -29,6 +29,11 @@ module ActiveRecordImporter
         @@importer_options
       end
 
+      def import!(import_object, execute = true)
+        ActiveRecordImporter::Dispatcher.new(
+          import_object.id, execute).call
+      end
+
       private
 
       def allowed_columns_hash(options = {})
