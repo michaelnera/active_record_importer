@@ -1,8 +1,11 @@
 # ActiveRecordImporter
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/active_record_importer`. To experiment with that code, run `bin/console` for an interactive prompt.
+Supports only Rails 4... (I'll release soon an update to support Rails 5)
 
-TODO: Delete this and the text above, and describe your gem
+This gem helps you insert/update records easily. For now, it only accepts CSV file.
+This also helps you monitor how many rows are imported, and how many rows failed.
+I'll release an update to enable this on background job.
+This gem allows you to easily import to any model with few configurations.
 
 ## Installation
 
@@ -21,8 +24,6 @@ Or install it yourself as:
     $ gem install active_record_importer
 
 ## Usage
-
-Supports only Rails 4...
 
 Simple usage for now:
 
