@@ -38,7 +38,7 @@ module ActiveRecordImporter
     end
 
     def fetch_instance_attributes
-      @attributes = AttributesBuilder.new(
+      @attributes = Attribute::AttributesBuilder.new(
                       importable, row_attrs
                     ).build
     rescue => exception
@@ -46,7 +46,7 @@ module ActiveRecordImporter
     end
 
     def fetch_find_attributes
-      @find_attributes = FindOptionsBuilder.new(
+      @find_attributes = Attribute::FindOptionsBuilder.new(
         resource: import.resource,
         find_options: import.find_options,
         attrs: attributes
