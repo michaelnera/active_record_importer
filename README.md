@@ -67,13 +67,15 @@ class Import < ActiveRecord::Base
                            content_type: %w(text/plain text/csv)
                        }
 
-  after_create :execute, if: :execute_on_create
-
   # I'll add import options in the next release
   # accepts_nested_attributes_for :import_options, allow_destroy: true
 
   def execute
     resource_class.import!(self, execute_on_create)
+  end
+
+  def execute!
+    resource_class.import!(self, true)
   end
 
   def resource_class
@@ -158,8 +160,7 @@ class ImportsController < ApplicationController
 
   def create
     @import = Import.create!(import_params)
-    @import.execute_on_create = true
-    @import.execute
+    @import.execute!
   end
 
   private
@@ -168,6 +169,19 @@ class ImportsController < ApplicationController
     params.require(:import).permit(:file, :resource, :insert_method, :batch_size)
   end
 end
+```
+
+#### Rails Console:
+```ruby
+  File.open(PATH_TO_CSV_FILE) do |file|
+    @import = Import.create(
+               resource: 'User',
+               file: file,
+               insert_method: 'upsert',
+               find_options: 'first_name,last_name'
+             )
+  end
+  @import.execute!
 ```
 
 You may include execute_on_create as a checkbox field in your Import form so you don't have to
@@ -189,4 +203,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/michae
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
