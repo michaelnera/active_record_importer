@@ -18,13 +18,15 @@ module ActiveRecordImporter
                              content_type: %w(text/plain text/csv)
                          }
 
-    after_create :execute, if: :execute_on_create
-
     # I'll add import options in the next release
     # accepts_nested_attributes_for :import_options, allow_destroy: true
 
     def execute
       resource_class.import!(self, execute_on_create)
+    end
+
+    def execute!
+      resource_class.import!(self, true)
     end
 
     def resource_class
