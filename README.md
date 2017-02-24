@@ -185,10 +185,6 @@ end
   @import.execute!
 ```
 
-You may include execute_on_create as a checkbox field in your Import form so you don't have to
-include `@import.execute_on_create = true` in your controller.
-
-
 
 ## Development
 
