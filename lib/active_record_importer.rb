@@ -17,11 +17,15 @@ module ActiveRecordImporter
   autoload :Importable,           'active_record_importer/importable'
   autoload :InstanceBuilder,      'active_record_importer/instance_builder'
   autoload :OptionsBuilder,       'active_record_importer/options_builder'
-  autoload :AttributesBuilder,    'active_record_importer/attributes_builder'
-  autoload :FindOptionsBuilder,   'active_record_importer/find_options_builder'
   autoload :TransitionProcessor,  'active_record_importer/transition_processor'
   autoload :ImportCallbacker,     'active_record_importer/import_callbacker'
-  autoload :Helpers,              'active_record_importer/helpers'
+  autoload :FailedFileBuilder,     'active_record_importer/failed_file_builder'
+
+  module Attribute
+    autoload :AttributesBuilder,    'active_record_importer/attribute/attributes_builder'
+    autoload :FindOptionsBuilder,   'active_record_importer/attribute/find_options_builder'
+    autoload :Helpers,              'active_record_importer/attribute/helpers'
+  end
 
   require 'active_record_importer/railtie' if defined?(Rails) && Rails::VERSION::MAJOR >= 3
 end
