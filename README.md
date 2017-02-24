@@ -47,7 +47,7 @@ class ActiveRecordImporterMigration < ActiveRecord::Migration
 end
 ```
 
-#### Import Model:
+#### Add Import Model:
 ```ruby
 class Import < ActiveRecord::Base
   extend Enumerize
@@ -58,6 +58,7 @@ class Import < ActiveRecord::Base
             default: :upsert
 
   has_attached_file :file
+  has_attached_file :failed_file
 
   attr_accessor :execute_on_create
 
@@ -68,7 +69,12 @@ class Import < ActiveRecord::Base
                            content_type: %w(text/plain text/csv)
                        }
 
-  # I'll add import options in the next release
+  validates_attachment :failed_file,
+                       content_type: {
+                           content_type: %w(text/plain text/csv)
+                       }
+
+  # I'll add import options in the next major release
   # accepts_nested_attributes_for :import_options, allow_destroy: true
 
   def execute
@@ -88,12 +94,21 @@ class Import < ActiveRecord::Base
   end
 
   ##
-  # Override this if you prefer to have
-  # a private permission or you have
+  # Override this if you prefer have
+  # private permissions or you have
   # private methods for reading files
   ##
   def import_file
-    local_path? ? file.path : file.url
+    local_path?(file) ? file.path : file.url
+  end
+
+  ##
+  # Override this method if you have
+  # private permissions or you have private methods
+  # for reading/writing uploaded files
+  ##
+  def failed_file_path
+    local_path?(failed_file) ? failed_file.path : failed_file.url
   end
 
   private
@@ -103,13 +118,14 @@ class Import < ActiveRecord::Base
     errors.add(:find_options, "can't be blank") if find_options.blank?
   end
 
-  def local_path?
-    File.exist? file.path
+  def local_path?(f)
+    File.exist? f.path
   end
 end
 ```
 
-Add `acts_as_importable` to a model to make it importable
+### Add `acts_as_importable` to any ActiveRecord model to make it importable
+
 ```ruby
 class User < ActiveRecord::Base
   acts_as_importable
@@ -123,10 +139,21 @@ class User < ActiveRecord::Base
                                            last_name: 'dela Cruz' },
                      find_options: %i(email),
                      before_save: Proc.new { |user| user.password = 'temporarypassword123' }
+                     after_save: Proc.new { |user| puts "THIS IS CALLED AFTER OBJECT IS SAVED" }
 end
 ```
 
-#### Import Sample HAML Form
+If you're using ActiveRecord::Store, you may import values to your accessors by including them in the configuration:
+```ruby
+class User < ActiveRecord::Base
+  store :properties, accessors: [:first_key, :second_key]
+
+  acts_as_importable store_accessors: [:first_key, :second_key]
+end
+```
+
+### Add import form
+This is a sample import HAML form:
 ```ruby
     # resource is your Model name
     = f.input :resource
@@ -153,9 +180,23 @@ You may also add some options from the SmarterCSV gem:
     | :chunk_size                    |  500
     | :col_sep                       |  ","
 
-#### I'll add more options SOON!
+https://github.com/tilo/smarter_csv
 
-#### Imports Controller:
+
+```ruby
+class User < ActiveRecord::Base
+  acts_as_importable csv_opts: {
+                       chunk_size: 2000,
+                       col_sep: '|',
+                       convert_values_to_numeric: { only: [:age, :salary] }
+                     }
+end
+```
+
+`I'll add more options SOON!`
+
+
+### Create Imports Controller:
 ```ruby
 class ImportsController < ApplicationController
 
@@ -172,17 +213,17 @@ class ImportsController < ApplicationController
 end
 ```
 
-#### Rails Console:
+#### Run it via Rails Console:
 ```ruby
-  File.open(PATH_TO_CSV_FILE) do |file|
-    @import = Import.create(
-               resource: 'User',
-               file: file,
-               insert_method: 'upsert',
-               find_options: 'first_name,last_name'
-             )
-  end
-  @import.execute!
+File.open(PATH_TO_CSV_FILE) do |file|
+  @import = Import.create!(
+             resource: 'User',
+             file: file,
+             insert_method: 'upsert',
+             find_options: 'first_name,last_name'
+           )
+end
+@import.execute!
 ```
 
 
