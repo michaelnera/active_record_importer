@@ -12,6 +12,10 @@ module ActiveRecordImporter
       end
     end
 
-    class DuplicateRecord < StandardError; end
+    class DuplicateRecord < StandardError
+      def initialize
+        super 'Duplicate record found!'
+      end
+    end
   end
 end
