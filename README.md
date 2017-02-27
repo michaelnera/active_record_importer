@@ -25,8 +25,32 @@ Or install it yourself as:
     $ gem install active_record_importer
 
 ## Usage
+### For version 0.3.0
 
-Simple usage for now:
+For the newest version (0.3.0), you don't have to create Import table/model and controller.
+You just need to add the `acts_as_importable` in your model you want to be importable, and you may now run:
+
+```ruby
+User.import!(file: File.open(PATH_TO_FILE))
+```
+
+`insert` will be the default insert method for this
+If you want to use `upsert` or `error_duplicate`, define it in your importer options:
+
+```ruby
+class User < ActiveRecord::Base
+  acts_as_importable insert_method: 'upsert',
+                     find_options: [:email]
+end
+```
+
+Or you may use in your console:
+
+```ruby
+User.acts_as_importable insert_method: 'error_duplicate', find_options: ['email']
+```
+
+### If you don't want to record the status of your import, you don't have to do the remaining steps
 
 ### Create Import table/model
 I'll add a generator on my next release
@@ -76,13 +100,25 @@ class Import < ActiveRecord::Base
 
   # I'll add import options in the next major release
   # accepts_nested_attributes_for :import_options, allow_destroy: true
-
+  ### THIS IS VERSION 0.2.1 and below
   def execute
     resource_class.import!(self, execute_on_create)
   end
 
+  ### THIS IS VERSION 0.2.1 and below
+  def execute
+    resource_class.import!(object: self, execute: execute_on_create)
+  end
+
+
+  ### THIS IS VERSION 0.2.1 and below
   def execute!
     resource_class.import!(self, true)
+  end
+
+  ### THIS IS VERSION 0.3.0
+  def execute!
+    resource_class.import!(object: self, execute: true)
   end
 
   def resource_class
@@ -225,6 +261,9 @@ File.open(PATH_TO_CSV_FILE) do |file|
 end
 @import.execute!
 ```
+
+###REMINDER:
+Headers of your csv file should be formatted/transformed to column names of your IMPORTABLE model
 
 
 ## Development
