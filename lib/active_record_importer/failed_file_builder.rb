@@ -19,12 +19,9 @@ module ActiveRecordImporter
     private
 
     def create_or_append_to_csv
-      puts 'TEST!!!'
       if import.failed_file.present?
-        puts 'APPEND!!!!'
         append_rows_to_file
       else
-        puts 'WRITE!!!!'
         write_csv_file
       end
     end
