@@ -4,7 +4,7 @@ module ActiveRecordImporter
       include Virtus.model
       include Helpers
 
-      attribute :resource, String
+      attribute :importable
       attribute :attrs, Hash, default: {}
       attribute :find_options, String
       attribute :prefix, String
@@ -16,18 +16,8 @@ module ActiveRecordImporter
 
       private
 
-      def klass
-        resource.safe_constantize
-      end
-
-      delegate :importer_options, to: :klass
-
-      delegate :required_attributes, to: :importer_options
-
       def get_find_opts
         @options = strip_and_symbolize
-        @options ||= importer_options.find_options || required_attributes
-        @options
       end
 
       def slice_attributes

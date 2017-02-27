@@ -17,5 +17,11 @@ module ActiveRecordImporter
         super 'Duplicate record found!'
       end
     end
+
+    class MissingImportFile < StandardError
+      def initialize
+        super 'File is missing for import'
+      end
+    end
   end
 end

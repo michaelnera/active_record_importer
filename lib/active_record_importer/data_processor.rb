@@ -1,16 +1,16 @@
 module ActiveRecordImporter
   class DataProcessor
-    attr_reader :importable, :import, :instance, :attributes,
-                :row_errors, :row_attrs, :find_attributes
+    include Virtus.model
 
-    delegate :importer_options,
-             to: :importable
-
-    def initialize(import, row_attrs)
-      @import = import
-      @importable = import.resource.safe_constantize
-      @row_attrs = row_attrs
-    end
+    attribute :import, Import
+    attribute :importable, Class
+    attribute :insert_method, String, default: :set_insert_method
+    attribute :row_attrs, Hash
+    attribute :instance_attrs, Hash
+    attribute :find_options, String, default: :set_find_options
+    attribute :find_attributes, Hash
+    attribute :row_errors, Array
+    attribute :instance
 
     def process
       fetch_instance_attributes
@@ -24,10 +24,12 @@ module ActiveRecordImporter
       ActiveRecord::Base.transaction do
         begin
           @instance =
-              InstanceBuilder.new(
-                import, find_attributes,
-                attributes_without_state_machine_attrs
-              ).build
+            InstanceBuilder.new(
+              importable: importable,
+              insert_method: insert_method,
+              find_attributes: find_attributes,
+              instance_attrs: attributes_without_state_machine_attrs
+            ).build
 
           methods_after_upsert
           true
@@ -38,18 +40,18 @@ module ActiveRecordImporter
     end
 
     def fetch_instance_attributes
-      @attributes = Attribute::AttributesBuilder.new(
-                      importable, row_attrs
-                    ).build
+      @instance_attrs = Attribute::AttributesBuilder.new(
+        importable, row_attrs
+      ).build
     rescue => exception
       append_errors(exception)
     end
 
     def fetch_find_attributes
       @find_attributes = Attribute::FindOptionsBuilder.new(
-        resource: import.resource,
-        find_options: import.find_options,
-        attrs: attributes
+        importable: importable,
+        find_options: find_options,
+        attrs: instance_attrs
       ).build
     rescue => exception
       append_errors(exception)
@@ -62,8 +64,10 @@ module ActiveRecordImporter
       run_after_save_callbacks
     end
 
-    delegate :after_save,
-             :state_machine_attr,
+    delegate :importer_options,
+             to: :importable
+
+    delegate :after_save, :state_machine_attr,
              to: :importer_options
 
     def state_transitions
@@ -77,7 +81,7 @@ module ActiveRecordImporter
     end
 
     def attributes_without_state_machine_attrs
-      attributes.except(*state_machine_attr)
+      instance_attrs.except(*state_machine_attr)
     end
 
     def skip_callbacks?
@@ -96,6 +100,16 @@ module ActiveRecordImporter
       message = error.is_a?(Exception) ? error.message : error
       @row_errors = message
       fail ActiveRecord::Rollback if rollback
+    end
+
+    def set_insert_method
+      @insert_method = import.try(:insert_method)
+      @insert_method ||= importer_options.insert_method
+      @insert_method ||= 'insert'
+    end
+
+    def set_find_options
+      import.try(:find_options) || importer_options.find_options.join(',')
     end
   end
 end

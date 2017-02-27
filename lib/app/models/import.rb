@@ -28,11 +28,11 @@ module ActiveRecordImporter
     # accepts_nested_attributes_for :import_options, allow_destroy: true
 
     def execute
-      resource_class.import!(self, execute_on_create)
+      resource_class.import!(object: self, execute: execute_on_create)
     end
 
     def execute!
-      resource_class.import!(self, true)
+      resource_class.import!(object: self, execute: true)
     end
 
     def resource_class

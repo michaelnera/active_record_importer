@@ -1,12 +1,11 @@
 module ActiveRecordImporter
   class InstanceBuilder
-    attr_reader :attributes, :find_attributes, :import
+    include Virtus.model
 
-    def initialize(import, find_attributes, attributes)
-      @import = import
-      @find_attributes = find_attributes
-      @attributes = attributes
-    end
+    attribute :importable, ActiveRecord::Base
+    attribute :insert_method, String, default: 'insert'
+    attribute :instance_attrs, Hash, default: {}
+    attribute :find_attributes, Hash, default: {}
 
     def build
       instance = initialize_instance
@@ -15,20 +14,16 @@ module ActiveRecordImporter
 
     private
 
-    delegate :insert_method, to: :import
+    delegate :error_duplicate, :insert?, to: :insert_method_inquiry
 
     def initialize_instance
-      return klass.new if insert_method.insert?
+      return importable.new if insert?
 
       fail Errors::MissingFindByOption if find_attributes.blank?
-      klass.find_or_initialize_by(find_attributes)
+      importable.find_or_initialize_by(find_attributes)
     end
 
-    def klass
-      import.resource.safe_constantize
-    end
-
-    delegate :importer_options, to: :klass
+    delegate :importer_options, to: :importable
     delegate :before_save, to: :importer_options
 
     def process_data(instance)
@@ -44,13 +39,17 @@ module ActiveRecordImporter
     end
 
     def assign_attrs_and_save!(instance)
-      instance.attributes = attributes
+      instance.attributes = instance_attrs
       instance.save!
       instance
     end
 
+    def insert_method_inquiry
+      insert_method.inquiry
+    end
+
     def error_duplicate?(instance)
-      instance.persisted? && insert_method.error_duplicate?
+      instance.persisted? && error_duplicate?
     end
   end
 end

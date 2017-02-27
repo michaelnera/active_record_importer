@@ -31,9 +31,10 @@ module ActiveRecordImporter
   class ImporterOptions
     include Virtus.model
 
-    attribute :find_options, Array
+    attribute :find_options, Array, default: []
     attribute :exclude_from_find_options, Array
     attribute :scope, Symbol
+    attribute :insert_method, String
     attribute :importable_columns, Array
     attribute :default_attributes, Hash
     attribute :csv_opts, CsvOptions, default: CsvOptions.new
