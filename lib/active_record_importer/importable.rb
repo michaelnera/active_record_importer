@@ -22,9 +22,9 @@ module ActiveRecordImporter
       ##
       def acts_as_importable(options = {})
         @@importer_options = OptionsBuilder.build(options.merge(allowed_columns_hash(options)))
-        ::IMPORTABLES << self.name unless ::IMPORTABLES.include?(self.name)
 
         include ActiveRecordImporter::Importable::InstanceMethods
+        extend ActiveRecordImporter::Importable::SingletonMethods
       end
 
       def importer_options
@@ -32,7 +32,7 @@ module ActiveRecordImporter
       end
 
       def importable?
-        ::IMPORTABLES.include?(self.name)
+        false
       end
 
       ##
@@ -119,6 +119,12 @@ module ActiveRecordImporter
 
       def importing?
         @importing ||= false
+      end
+    end
+
+    module SingletonMethods
+      def importable?
+        true
       end
     end
   end
