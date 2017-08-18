@@ -25,9 +25,10 @@ Or install it yourself as:
     $ gem install active_record_importer
 
 ## Usage
-### For version 0.3.0
+### For version 0.4.0
 
-For the newest version (0.3.0), you don't have to create Import table/model and controller.
+For the newest version (0.4.0), you don't have to create Import table/model and controller.
+I already fixed the errors when there's no Import table/model on version 0.3.0.
 You just need to add the `acts_as_importable` in your model you want to be importable, and you may now run:
 
 ```ruby
