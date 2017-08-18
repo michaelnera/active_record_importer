@@ -2,8 +2,8 @@ module ActiveRecordImporter
   class BatchImporter
     include Virtus.model
 
-    attribute :import, Import
     attribute :importable
+    attribute :import
     attribute :data, Array, default: []
 
     def process!
@@ -40,7 +40,7 @@ module ActiveRecordImporter
     end
 
     def failed_file
-      return unless import.present? || import.respond_to?(:failed_file) 
+      return unless import.present? || import.respond_to?(:failed_file)
       @failed_file ||= FailedFileBuilder.new(import)
     end
 

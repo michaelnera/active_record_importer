@@ -2,8 +2,8 @@ module ActiveRecordImporter
   class DataProcessor
     include Virtus.model
 
-    attribute :import, Import
     attribute :importable, Class
+    attribute :import
     attribute :insert_method, String, default: :set_insert_method
     attribute :row_attrs, Hash
     attribute :instance_attrs, Hash

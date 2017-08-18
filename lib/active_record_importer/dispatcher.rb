@@ -2,9 +2,9 @@ module ActiveRecordImporter
   class Dispatcher
     include Virtus.model
 
-    attribute :import, Import
     attribute :importable, Class
     attribute :execute, Boolean, default: true
+    attribute :import
     attribute :import_file
 
     def call
@@ -52,7 +52,7 @@ module ActiveRecordImporter
     end
 
     def create_import_failed_file
-      return unless File.exists?(temp_failed_file_path)
+      return if import.nil? || !File.exists?(temp_failed_file_path)
       File.open(temp_failed_file_path) do |file|
         import.failed_file = file
 
@@ -68,7 +68,15 @@ module ActiveRecordImporter
     end
 
     def destroy_temp_failed_file
-      FileUtils.rm(temp_file_path)
+      FileUtils.rm(temp_failed_file_path)
+    end
+
+    def temp_failed_file_path
+      "/tmp/#{target_file_name}"
+    end
+
+    def target_file_name
+      "failed_file_#{import.id}.csv"
     end
   end
 end
