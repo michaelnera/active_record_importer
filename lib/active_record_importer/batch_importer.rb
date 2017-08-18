@@ -5,7 +5,6 @@ module ActiveRecordImporter
     attribute :import, Import
     attribute :importable
     attribute :data, Array, default: []
-    attribute :failed_file, FailedFileBuilder, default: :initialize_failed_file
 
     def process!
       @imported_count, @failed_count = 0, 0
@@ -16,15 +15,9 @@ module ActiveRecordImporter
       end
 
       set_import_count
-      finalize_batch_import
     end
 
     private
-
-    def initialize_failed_file
-      return unless import
-      FailedFileBuilder.new(import)
-    end
 
     def process_row(row_attrs)
       processor =
@@ -35,7 +28,7 @@ module ActiveRecordImporter
         )
       return @imported_count += 1 if processor.process
 
-      collect_failed_rows(row_attrs, processor.row_errors)
+      write_failed_row(row_attrs, processor.row_errors)
       @failed_count += 1
     end
 
@@ -46,14 +39,14 @@ module ActiveRecordImporter
       Import.update_counters(import.id, failed_rows: @failed_count)
     end
 
-    def collect_failed_rows(row_attrs, errors)
-      return puts errors.inspect unless failed_file
-      @failed_file.failed_rows << row_attrs.merge(import_errors: errors)
+    def failed_file
+      return unless import.present? || import.respond_to?(:failed_file) 
+      @failed_file ||= FailedFileBuilder.new(import)
     end
 
-    def finalize_batch_import
-      return unless failed_file
-      @failed_file.build
+    def write_failed_row(row_attrs, errors)
+      return puts errors.inspect unless failed_file
+      failed_file.write(row_attrs.merge(import_errors: errors))
     end
 
     delegate :importer_options, to: :importable

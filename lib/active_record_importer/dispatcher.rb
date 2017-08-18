@@ -9,6 +9,7 @@ module ActiveRecordImporter
 
     def call
       divide_and_conquer
+      create_import_failed_file
     end
 
     private
@@ -19,6 +20,7 @@ module ActiveRecordImporter
           queue_or_execute(collection)
         end
       end
+
       true
     end
 
@@ -45,8 +47,28 @@ module ActiveRecordImporter
       ).process!
     end
 
-    def queue(collection)
+    def queue(_collection)
       # To follow
+    end
+
+    def create_import_failed_file
+      return unless File.exists?(temp_failed_file_path)
+      File.open(temp_failed_file_path) do |file|
+        import.failed_file = file
+
+        # I forced to save it as 'text/csv' because
+        # the file is being saved as 'text/x-pascal'
+        # and I still have no idea why?!?
+
+        import.failed_file_content_type = 'text/csv'
+        import.save!
+      end
+
+      destroy_temp_failed_file
+    end
+
+    def destroy_temp_failed_file
+      FileUtils.rm(temp_file_path)
     end
   end
 end
