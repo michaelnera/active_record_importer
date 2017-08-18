@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['kapitan_03@yahoo.com']
 
   spec.summary       = 'Active Record Importer'
-  spec.description   = 'Smart gem for importing rails models'
+  spec.description   = 'Smart gem for importing CSV files to ActiveRecord models'
   spec.homepage      = 'https://github.com/michaelnera/active_record_importer'
   spec.license       = 'MIT'
 
