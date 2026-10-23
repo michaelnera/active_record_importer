@@ -10,6 +10,12 @@ See [How rows are persisted](#how-rows-are-persisted).
 
 The spec suite runs against PostgreSQL and MySQL (ActiveRecord 7.2); see [Development](#development).
 
+## Requirements
+
+* Ruby >= 2.7
+* ActiveRecord >= 6.0
+* PostgreSQL (>= 9.5) or MySQL for bulk upserts; other databases fall back to row-by-row saving
+
 I'll release an update to enable this on background job.
 
 ## Installation

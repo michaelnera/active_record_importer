@@ -22,6 +22,7 @@
   Importer hooks (`before_save`, `after_save`, `state_machine_attr`) still run; when
   `after_save` or `state_machine_attr` are configured the chunk is saved row by row.
 - Default `chunk_size` is now 500 (was `nil`, which processed one row at a time).
+- Requires Ruby >= 2.7 and ActiveRecord >= 6.0 (was ActiveRecord >= 4.0).
 - `activerecord-import` is a new runtime dependency.
 - RSpec 3 for development.
 
