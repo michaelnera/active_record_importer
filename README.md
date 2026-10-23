@@ -29,6 +29,13 @@ Or install it yourself as:
     $ gem install active_record_importer
 
 ## Usage
+### For version 1.0.0
+
+Rows are now validated one by one but persisted in bulk per chunk (see
+[How rows are persisted](#how-rows-are-persisted)). If your model relies on its own
+ActiveRecord save callbacks during import, add `bulk_insert: false` to `acts_as_importable`.
+See the [CHANGELOG](CHANGELOG.md) for the full list of changes.
+
 ### For version 0.4.0
 
 For the newest version (0.4.0), you don't have to create Import table/model and controller.
