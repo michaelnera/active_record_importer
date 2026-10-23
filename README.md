@@ -1,10 +1,14 @@
 # ActiveRecordImporter
 
-Supports only Rails 4 and 5
-
 This gem helps you insert/update records easily. For now, it only accepts CSV file.
 This also helps you monitor how many rows are imported, and how many rows failed.
 This gem also allows you to easily import to any model with few configurations.
+
+Rows are validated one by one but persisted **in bulk** (one `INSERT` per chunk,
+one upsert per chunk) through [activerecord-import](https://github.com/zdennis/activerecord-import).
+See [How rows are persisted](#how-rows-are-persisted).
+
+The spec suite runs against PostgreSQL and MySQL (ActiveRecord 7.2); see [Development](#development).
 
 I'll release an update to enable this on background job.
 
@@ -232,6 +236,38 @@ end
 
 `I'll add more options SOON!`
 
+### How rows are persisted
+
+Every CSV chunk (`chunk_size` / `batch_size` rows, 500 by default) goes through these steps:
+
+1. The attributes of every row are built (`default_attributes`, `store_accessors`, timestamps...).
+2. For `upsert` and `error_duplicate`, the existing records matching the `find_options`
+   of the whole chunk are loaded with **a single query**.
+3. An instance is built for every row, the `before_save` callback runs, and the instance is
+   **validated** (`valid?`). Invalid rows are kept aside with their errors
+   (e.g. `Validation failed: Email can't be blank`).
+4. Valid new records are inserted with **one bulk `INSERT`**, and valid existing records are
+   updated with **one bulk upsert** on the primary key, inside one transaction per chunk.
+   If the database rejects a bulk statement (e.g. a unique index without a model validation),
+   that group is retried row by row in savepoints, so only the offending rows fail.
+5. Failed rows are written to the failed file with an `import_errors` column, and
+   `imported_rows` / `failed_rows` are updated on the `Import` record.
+
+Bulk persistence skips the model's own ActiveRecord save callbacks (like `activerecord-import` does).
+Rows are saved one by one (still within one transaction per chunk) when:
+
+* the importer has `after_save` or `state_machine_attr` options, since they need a persisted instance, or
+* bulk insert is disabled for the model:
+
+```ruby
+class User < ActiveRecord::Base
+  acts_as_importable bulk_insert: false
+end
+```
+
+Duplicates inside the same chunk follow the `insert_method`: with `upsert` they are merged into
+a single record, with `error_duplicate` the second occurrence fails with `Duplicate record found!`.
+
 
 ### Create Imports Controller:
 ```ruby
@@ -269,7 +305,24 @@ Headers of your csv file should be formatted/transformed to column names of your
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies.
+
+The specs run against a real database. By default they use PostgreSQL
+(database `active_record_importer_test`, created automatically if missing):
+
+    $ bundle exec rspec
+    $ DB=postgresql PG_HOST=localhost PG_USER=postgres PG_PASSWORD=secret bundle exec rspec
+
+To run them against MySQL (uses the `trilogy` adapter, or `MYSQL_ADAPTER=mysql2`):
+
+    $ docker run -d --name ari_mysql -e MYSQL_ROOT_PASSWORD=root \
+        -e MYSQL_DATABASE=active_record_importer_test -p 3307:3306 mysql:8.0
+    $ DB=mysql MYSQL_PORT=3307 MYSQL_PASSWORD=root bundle exec rspec
+
+Supported variables: `DB` (`postgresql`|`mysql`), `DB_NAME`, `PG_HOST`, `PG_PORT`, `PG_USER`,
+`PG_PASSWORD`, `MYSQL_ADAPTER`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`.
+
+You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 

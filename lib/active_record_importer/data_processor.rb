@@ -1,4 +1,9 @@
 module ActiveRecordImporter
+  ##
+  # Prepares a single csv row: builds its attributes and find attributes,
+  # builds and validates the instance, and keeps the row errors.
+  # Persistence happens later, for the whole chunk, in BatchPersister.
+  ##
   class DataProcessor
     include Virtus.model
 
@@ -9,35 +14,72 @@ module ActiveRecordImporter
     attribute :instance_attrs, Hash
     attribute :find_options, String, default: :set_find_options
     attribute :find_attributes, Hash
-    attribute :row_errors, Array
+    attribute :row_errors, String
     attribute :instance
+    attribute :lookup, Object, default: :default_lookup
 
     def process
+      prepare
+      build
+    end
+
+    ##
+    # Step 1: build the attributes used for the instance and the lookup
+    ##
+    def prepare
       fetch_instance_attributes
       fetch_find_attributes
-      create_instance
+      !failed?
+    end
+
+    ##
+    # Step 2: build and validate the instance
+    ##
+    def build
+      return false if failed?
+
+      @instance =
+        InstanceBuilder.new(
+          importable: importable,
+          insert_method: insert_method,
+          find_attributes: find_attributes,
+          instance_attrs: attributes_without_state_machine_attrs,
+          lookup: lookup
+        ).build
+      true
+    rescue => exception
+      append_errors(exception)
+      false
+    end
+
+    ##
+    # Find attributes that need to be preloaded for this row
+    ##
+    def find_attributes_for_lookup
+      return if failed? || insert_method.inquiry.insert?
+      find_attributes
+    end
+
+    ##
+    # Called once the instance is persisted (per-row mode only)
+    ##
+    def after_persist
+      methods_after_upsert
+    end
+
+    def mark_failed(error)
+      append_errors(error)
+    end
+
+    def failed?
+      row_errors.present?
+    end
+
+    def ready?
+      !failed? && instance.present?
     end
 
     private
-
-    def create_instance
-      ActiveRecord::Base.transaction do
-        begin
-          @instance =
-            InstanceBuilder.new(
-              importable: importable,
-              insert_method: insert_method,
-              find_attributes: find_attributes,
-              instance_attrs: attributes_without_state_machine_attrs
-            ).build
-
-          methods_after_upsert
-          true
-        rescue => exception
-          append_errors(exception, true)
-        end
-      end
-    end
 
     def fetch_instance_attributes
       @instance_attrs = Attribute::AttributesBuilder.new(
@@ -48,6 +90,8 @@ module ActiveRecordImporter
     end
 
     def fetch_find_attributes
+      return if failed?
+
       @find_attributes = Attribute::FindOptionsBuilder.new(
         importable: importable,
         find_options: find_options,
@@ -81,7 +125,7 @@ module ActiveRecordImporter
     end
 
     def attributes_without_state_machine_attrs
-      instance_attrs.except(*state_machine_attr)
+      instance_attrs.except(*Array(state_machine_attr))
     end
 
     def skip_callbacks?
@@ -94,12 +138,10 @@ module ActiveRecordImporter
       ImportCallbacker.new(instance, after_save).call
     end
 
-    def append_errors(error, rollback = false)
+    def append_errors(error)
       return if error.blank?
 
-      message = error.is_a?(Exception) ? error.message : error
-      @row_errors = message
-      fail ActiveRecord::Rollback if rollback
+      @row_errors = error.is_a?(Exception) ? error.message : error.to_s
     end
 
     def set_insert_method
@@ -110,6 +152,10 @@ module ActiveRecordImporter
 
     def set_find_options
       import.try(:find_options) || importer_options.find_options.join(',')
+    end
+
+    def default_lookup
+      RecordPreloader.new(importable)
     end
   end
 end

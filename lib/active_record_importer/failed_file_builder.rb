@@ -10,13 +10,13 @@ module ActiveRecordImporter
     def write(failed_row = {})
       return if failed_row.blank?
 
-      if File.exists?(temp_failed_file_path)
+      if File.exist?(temp_failed_file_path)
         File.open(temp_failed_file_path, 'a') do |file|
           file.write failed_row.values.to_csv
         end
       else
         File.open(temp_failed_file_path, 'w') do |file|
-          file.write failed_row.keys
+          file.write failed_row.keys.to_csv
           file.write failed_row.values.to_csv
         end
       end

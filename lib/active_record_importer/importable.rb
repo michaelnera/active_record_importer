@@ -21,14 +21,15 @@ module ActiveRecordImporter
       #   end
       ##
       def acts_as_importable(options = {})
-        @@importer_options = OptionsBuilder.build(options.merge(allowed_columns_hash(options)))
+        @importer_options = OptionsBuilder.build(options.merge(allowed_columns_hash(options)))
 
         include ActiveRecordImporter::Importable::InstanceMethods
         extend ActiveRecordImporter::Importable::SingletonMethods
       end
 
       def importer_options
-        @@importer_options
+        return @importer_options if defined?(@importer_options) && @importer_options
+        superclass.importer_options if superclass.respond_to?(:importer_options)
       end
 
       def importable?

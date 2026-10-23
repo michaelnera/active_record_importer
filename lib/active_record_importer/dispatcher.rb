@@ -26,8 +26,8 @@ module ActiveRecordImporter
 
     def csv_options
       opts = klass_csv_opts
-      return opts if import.nil? || import.batch_size.blank?
-      opts.merge(chunk_size: import.batch_size)
+      return opts if import.nil? || import.batch_size.to_i <= 0
+      opts.merge(chunk_size: import.batch_size.to_i)
     end
 
     def klass_csv_opts
@@ -52,7 +52,7 @@ module ActiveRecordImporter
     end
 
     def create_import_failed_file
-      return if import.nil? || !File.exists?(temp_failed_file_path)
+      return if import.nil? || !File.exist?(temp_failed_file_path)
       File.open(temp_failed_file_path) do |file|
         import.failed_file = file
 

@@ -20,7 +20,7 @@ module ActiveRecordImporter
       attribute :remove_empty_values, Boolean, default: false
       attribute :comment_regexp, Regexp, default: Regexp.new(/^#=>/)
       attribute :force_utf8, Boolean, default: true
-      attribute :chunk_size, Integer, default: nil
+      attribute :chunk_size, Integer, default: 500
       attribute :col_sep, String, default: ','
     end
   end
@@ -42,5 +42,9 @@ module ActiveRecordImporter
     attribute :before_save
     attribute :after_save
     attribute :state_machine_attr, Array
+
+    # Set to false to save rows one by one (within a single transaction
+    # per chunk) so the model's own ActiveRecord callbacks keep running
+    attribute :bulk_insert, Boolean, default: true
   end
 end

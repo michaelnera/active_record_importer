@@ -30,6 +30,7 @@ module ActiveRecordImporter
         default_attributes.each do |key, value|
           def_attrs[key] = fetch_value(value)
         end
+        def_attrs
       end
 
       def force_encode_attributes

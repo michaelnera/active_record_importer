@@ -12,9 +12,9 @@ module ActiveRecordImporter
         when Array
           run_each_callbacks
         when Symbol
-          object.send(callback)
+          object.send(callback_methods)
         when Proc
-          callback.call(object)
+          callback_methods.call(object)
       end
     end
 

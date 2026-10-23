@@ -6,7 +6,13 @@ module ActiveRecordImporter
     attribute :insert_method, String, default: 'insert'
     attribute :instance_attrs, Hash, default: {}
     attribute :find_attributes, Hash, default: {}
+    attribute :lookup, Object, default: :default_lookup
 
+    ##
+    # Builds (or finds) the instance for a row, runs the before_save
+    # callback, assigns the attributes and validates it.
+    # The instance is NOT persisted here; see BatchPersister.
+    ##
     def build
       instance = initialize_instance
       process_data(instance)
@@ -14,23 +20,25 @@ module ActiveRecordImporter
 
     private
 
-    delegate :error_duplicate, :insert?, to: :insert_method_inquiry
+    delegate :error_duplicate?, :insert?, to: :insert_method_inquiry
 
     def initialize_instance
       return importable.new if insert?
 
       fail Errors::MissingFindByOption if find_attributes.blank?
-      importable.find_or_initialize_by(find_attributes)
+
+      existing = lookup.find(find_attributes)
+      fail Errors::DuplicateRecord if existing && error_duplicate?
+
+      existing || lookup.register(find_attributes, importable.new)
     end
 
     delegate :importer_options, to: :importable
     delegate :before_save, to: :importer_options
 
     def process_data(instance)
-      fail Errors::DuplicateRecord if error_duplicate?(instance)
-
       before_save_callback(instance)
-      assign_attrs_and_save!(instance)
+      assign_attrs_and_validate!(instance)
     end
 
     def before_save_callback(instance)
@@ -38,9 +46,9 @@ module ActiveRecordImporter
       ImportCallbacker.new(instance, before_save).call
     end
 
-    def assign_attrs_and_save!(instance)
+    def assign_attrs_and_validate!(instance)
       instance.attributes = instance_attrs
-      instance.save!
+      fail ActiveRecord::RecordInvalid.new(instance) unless instance.valid?
       instance
     end
 
@@ -48,8 +56,8 @@ module ActiveRecordImporter
       insert_method.inquiry
     end
 
-    def error_duplicate?(instance)
-      instance.persisted? && error_duplicate?
+    def default_lookup
+      RecordPreloader.new(importable)
     end
   end
 end

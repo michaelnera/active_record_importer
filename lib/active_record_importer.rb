@@ -1,5 +1,8 @@
+require 'csv'
 require 'active_record_importer/version'
 require 'active_support/core_ext/module'
+require 'active_record'
+require 'activerecord-import'
 require 'virtus'
 require 'enumerize'
 require 'smarter_csv'
@@ -11,7 +14,9 @@ module ActiveRecordImporter
   ::IMPORTABLES = []
 
   autoload :BatchImporter,        'active_record_importer/batch_importer'
+  autoload :BatchPersister,       'active_record_importer/batch_persister'
   autoload :DataProcessor,        'active_record_importer/data_processor'
+  autoload :RecordPreloader,      'active_record_importer/record_preloader'
   autoload :Dispatcher,           'active_record_importer/dispatcher'
   autoload :Errors,               'active_record_importer/errors'
   autoload :Importable,           'active_record_importer/importable'
@@ -19,7 +24,7 @@ module ActiveRecordImporter
   autoload :OptionsBuilder,       'active_record_importer/options_builder'
   autoload :TransitionProcessor,  'active_record_importer/transition_processor'
   autoload :ImportCallbacker,     'active_record_importer/import_callbacker'
-  autoload :FailedFileBuilder,     'active_record_importer/failed_file_builder'
+  autoload :FailedFileBuilder,    'active_record_importer/failed_file_builder'
 
   module Attribute
     autoload :AttributesBuilder,    'active_record_importer/attribute/attributes_builder'
