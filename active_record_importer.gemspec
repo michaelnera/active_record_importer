@@ -30,5 +30,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'enumerize', '>= 2.0', '~> 2.0.1'
   spec.add_runtime_dependency 'virtus', '>= 1.0', '~> 1.0'
   spec.add_runtime_dependency 'smarter_csv', '>= 1.0', '~> 1.0'
-  spec.add_runtime_dependency 'paperclip', '>= 4.0', '~> 4.0'
+  spec.add_runtime_dependency 'paperclip', '>= 5.2.0', '< 7.0'
 end

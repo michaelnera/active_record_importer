@@ -27,6 +27,8 @@
 - RSpec 3 for development.
 
 ### Fixed
+- Require Paperclip >= 5.2.0 to address CVE-2017-0889 (SSRF). URI attachment
+  adapters are no longer enabled by default; local file uploads remain supported.
 - Importer options were stored in a class variable shared by every importable model;
   each model now keeps its own options.
 - `default_attributes` given as `Proc` or `Symbol` were never evaluated, and

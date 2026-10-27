@@ -14,6 +14,15 @@ The spec suite runs against PostgreSQL and MySQL (ActiveRecord 7.2); see [Develo
 
 * Ruby >= 2.7
 * ActiveRecord >= 6.0
+* Paperclip >= 5.2.0 and < 7.0
+
+Paperclip's URI attachment adapters are disabled by default to prevent SSRF
+(CVE-2017-0889). Use local file uploads; do not re-enable URI adapters for
+untrusted input.
+
+When upgrading from Paperclip 4.x with S3 storage, use `aws-sdk-s3`, configure
+`s3_region`, and change explicit permissions such as `:public_read` to
+`'public-read'`.
 * PostgreSQL (>= 9.5) or MySQL for bulk upserts; other databases fall back to row-by-row saving
 
 I'll release an update to enable this on background job.
